@@ -4,3 +4,10 @@ spring:
   ai:
     anthropic:
       api-key: ${API_KEY}
+      chat:
+        model: claude-sonnet-4-5-20250929
+
+
+agent:
+  tasks:
+    paths: classpath:/agents/*.md
