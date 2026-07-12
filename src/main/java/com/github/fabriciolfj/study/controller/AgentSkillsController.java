@@ -17,9 +17,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
+/*
 @RestController
 @RequestMapping("/agent-skills")
-@Validated
+@Validated*/
 public class AgentSkillsController {
     private final AgentSkillsService agentSkillsService;
     private final OrchestratorService orchestratorService;
