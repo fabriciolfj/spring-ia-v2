@@ -93,11 +93,10 @@ public class AgentConfig {
                 .defaultAdvisors(AutoMemoryToolsAdvisor.builder()
                         .memoriesRootDirectory(memoryDirectory).build(),
                         MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder()
-                                .maxMessages(100)
+                                //.maxMessages(10000)
                                 .build())
                                 .build(),
                         ToolCallingAdvisor.builder()
-                                .disableInternalConversationHistory()
                                 .build())
                 .build();
     }
