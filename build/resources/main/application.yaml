@@ -11,3 +11,5 @@ spring:
 agent:
   tasks:
     paths: classpath:/agents/*.md
+  memory:
+    dir: ./test/memory

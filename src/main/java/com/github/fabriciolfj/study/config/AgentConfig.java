@@ -1,12 +1,14 @@
 package com.github.fabriciolfj.study.config;
 
+import org.springaicommunity.agent.advisors.AutoMemoryToolsAdvisor;
 import org.springaicommunity.agent.common.task.subagent.SubagentType;
-import org.springaicommunity.agent.tools.FileSystemTools;
-import org.springaicommunity.agent.tools.ShellTools;
-import org.springaicommunity.agent.tools.SkillsTool;
+import org.springaicommunity.agent.tools.*;
 import org.springaicommunity.agent.tools.task.TaskTool;
 import org.springaicommunity.agent.tools.task.claude.ClaudeSubagentReferences;
 import org.springframework.ai.chat.client.ChatClient;
+import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
+import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
+import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.ToolCallback;
 import org.springaicommunity.agent.tools.task.claude.ClaudeSubagentType;
@@ -23,6 +25,15 @@ public class AgentConfig {
 
     @Value("${agent.tasks.paths}")
     private List<Resource> agentPaths;
+
+    @Value("classpath:/prompts/AUTO_MEMORY_TOOLS_SYSTEM_PROMPT.md")
+    Resource memorySystemPromptAutoMemoryTools;
+
+    @Value("classpath:/prompts/AUTO_MEMORY_FILESYSTEM_TOOLS_SYSTEM_PROMPT.md")
+    Resource memorySystemPromptFilesystemTools;
+
+    @Value("${agent.memory.dir}")
+    private String memoryDirectory;
 
    // @Bean
     //@Primary
@@ -41,8 +52,58 @@ public class AgentConfig {
                 .build();
     }
 
+    //@Bean
+    ChatClient chatClientWithoutAutoMemoryTools(ChatModel chatModel) {
+        return ChatClient
+                .builder(chatModel)
+                .defaultSystem(p -> p
+                        .text(memorySystemPromptFilesystemTools)
+                        .param("MEMORIES_ROOT_DIERCTORY", memoryDirectory))   // tells the agent where to write
+                .defaultTools(
+                        ShellTools.builder()
+                                .build(),         // Bash — mkdir, ls, etc.
+                        FileSystemTools.builder()
+                                .build())    // Read, Write, Edit — memory file operations
+                .defaultAdvisors(ToolCallingAdvisor.builder()
+                        .build())
+                .build();
+    }
+
+   // @Bean
+    ChatClient chatClientWithMoreSystemPrompt(ChatModel chatModel) {
+        return ChatClient
+                .builder(chatModel)
+                .defaultSystem(p -> p
+                        .text(memorySystemPromptAutoMemoryTools)
+                        .param("MEMORIES_ROOT_DIERCTORY", memoryDirectory))
+                .defaultTools(
+                        AutoMemoryTools.builder()
+                                .memoriesDir(memoryDirectory)
+                                .build(),
+                        TodoWriteTool.builder()
+                                .build())
+                .defaultAdvisors(ToolCallingAdvisor.builder()
+                        .build())
+                .build();
+    }
+
     @Bean
     ChatClient chatClient(ChatModel chatModel) {
+        return ChatClient.builder(chatModel)
+                .defaultAdvisors(AutoMemoryToolsAdvisor.builder()
+                        .memoriesRootDirectory(memoryDirectory).build(),
+                        MessageChatMemoryAdvisor.builder(MessageWindowChatMemory.builder()
+                                .maxMessages(100)
+                                .build())
+                                .build(),
+                        ToolCallingAdvisor.builder()
+                                .disableInternalConversationHistory()
+                                .build())
+                .build();
+    }
+
+    //@Bean
+    ChatClient chatClientSkill(ChatModel chatModel) {
         var skillRootDirectory = ".claude/skills";
         return ChatClient
                 .builder(chatModel)

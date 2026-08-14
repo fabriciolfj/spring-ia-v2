@@ -15,7 +15,7 @@ public class StudyApplication {
 		SpringApplication.run(StudyApplication.class, args);
 	}
 
-	@Bean
+	/*@Bean
 	CommandLineRunner demo(OrchestratorService orchestratorService) {
 
 		return args -> {
@@ -28,6 +28,6 @@ public class StudyApplication {
 			);
 			log.info("{}", response);
 		};
-	}
+	}*/
 
 }
