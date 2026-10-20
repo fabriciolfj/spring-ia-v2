@@ -1,11 +1,21 @@
 spring:
+  threads:
+    virtual:
+      enabled: true
   application:
     name: study
   ai:
     anthropic:
-      api-key: ${API_KEY}
-      chat:
-        model: claude-sonnet-4-5-20250929
+      api-key: ${KEY}
+    ollama:
+      base-url: http://localhost:11434
+      embedding:
+        model: nomic-embed-text
+    typesafe:
+      api-key: ${TYPESAFE_API_KEY}
+    model:
+      chat: anthropic
+      embedding: ollama
 
 
 agent:

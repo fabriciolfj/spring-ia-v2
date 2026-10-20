@@ -88,6 +88,7 @@ public class AgentConfig {
     }
 
     @Bean
+    @Primary
     ChatClient chatClient(ChatModel chatModel) {
         return ChatClient.builder(chatModel)
                 .defaultAdvisors(AutoMemoryToolsAdvisor.builder()
