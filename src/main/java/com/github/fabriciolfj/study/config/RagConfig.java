@@ -1,35 +1,37 @@
 package com.github.fabriciolfj.study.config;
 
-import org.springframework.ai.document.Document;
 import org.springframework.ai.embedding.EmbeddingModel;
-import org.springframework.ai.reader.TextReader;
 import org.springframework.ai.transformer.splitter.TokenTextSplitter;
-import org.springframework.ai.vectorstore.SimpleVectorStore;
-import org.springframework.ai.vectorstore.VectorStore;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.vectorstore.pgvector.PgVectorStore;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
+import org.springframework.jdbc.core.JdbcTemplate;
 
-import java.util.List;
+import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgDistanceType.COSINE_DISTANCE;
+import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexType.HNSW;
 
 @Configuration
 public class RagConfig {
 
-    @Value("classpath:/docs/brasil.txt")
-    private Resource brasilDocument;
+    @Bean
+    public TokenTextSplitter tokenTextSplitter() {
+        return TokenTextSplitter.builder()
+                .withChunkSize(350)
+                .withMinChunkSizeChars(5)
+                .withMaxNumChunks(1000)
+                .withKeepSeparator(true)
+                .build();
+    }
 
     @Bean
-    VectorStore vectorStore(EmbeddingModel embeddingModel) {
-        SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
-
-        List<Document> documents = new TextReader(brasilDocument).read();
-        List<Document> chunks = TokenTextSplitter.builder()
-                .withChunkSize(200)
-                .build()
-                .apply(documents);
-
-        vectorStore.add(chunks);
-        return vectorStore;
+    public PgVectorStore vectorStore(final JdbcTemplate jdbcTemplate, final EmbeddingModel embeddingModel) {
+        return PgVectorStore.builder(jdbcTemplate, embeddingModel)
+                .schemaName("public")
+                .vectorTableName("book")
+                .dimensions(768)
+                .distanceType(COSINE_DISTANCE)
+                .indexType(HNSW)
+                .initializeSchema(false)
+                .build();
     }
 }

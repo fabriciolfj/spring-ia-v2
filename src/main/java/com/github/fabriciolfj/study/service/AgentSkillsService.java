@@ -2,7 +2,7 @@ package com.github.fabriciolfj.study.service;
 
 import com.anthropic.client.AnthropicClient;
 import com.anthropic.core.http.HttpResponse;
-import com.anthropic.models.beta.files.FileMetadata;
+import com.anthropic.models.beta.files.BetaFileMetadata;
 import com.github.fabriciolfj.study.dto.ReportRequest;
 import com.github.fabriciolfj.study.model.AnthropicDocument;
 import lombok.RequiredArgsConstructor;
@@ -52,7 +52,7 @@ public class AgentSkillsService {
 
     public AnthropicDocument downloadReport(String fileId) {
         AnthropicClient client = chatModel.getAnthropicClient();
-        FileMetadata metadata = client.beta().files().retrieveMetadata(fileId);
+        BetaFileMetadata metadata = client.beta().files().retrieveMetadata(fileId);
         try (HttpResponse httpResponse = client.beta().files().download(fileId)) {
             byte[] content = httpResponse.body().readAllBytes();
             return new AnthropicDocument(metadata.filename(), metadata.mimeType(), content);

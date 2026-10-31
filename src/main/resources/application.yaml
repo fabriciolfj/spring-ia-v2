@@ -1,4 +1,8 @@
 spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:postgresql://localhost:5432/mydb
   threads:
     virtual:
       enabled: true
@@ -12,10 +16,11 @@ spring:
       embedding:
         model: nomic-embed-text
     typesafe:
-      api-key: ${TYPESAFE_API_KEY}
+      api-key: ${TYPESAFE_API_KEY:0}
     model:
       chat: anthropic
       embedding: ollama
+
 
 
 agent:

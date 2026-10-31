@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg15   # ← troca aqui
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
