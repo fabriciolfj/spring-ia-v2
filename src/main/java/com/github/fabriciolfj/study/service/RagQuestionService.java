@@ -22,15 +22,16 @@ public class RagQuestionService {
         final SearchRequest request = SearchRequest.builder()
                 .topK(10)
                 .query(question)
-                .similarityThreshold(0.5)
+                .similarityThreshold(0.7)
                 .build();
 
         return vectorStore.similaritySearch(request)
                 .stream()
-                .sorted(Comparator.comparingLong(RagQuestionService::createAt).reversed()
+                .sorted(Comparator.comparing(RagQuestionService::createAt, Comparator.reverseOrder())
                         .thenComparing(Document::getScore, Comparator.nullsLast(Comparator.reverseOrder())))
                 .toList();
     }
+
 
     private static long createAt(final Document doc) {
         return ((Number) doc.getMetadata().getOrDefault("createAt", 0L)).longValue();
