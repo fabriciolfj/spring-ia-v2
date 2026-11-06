@@ -11,6 +11,9 @@ spring:
   ai:
     anthropic:
       api-key: ${KEY}
+      chat:
+        model: claude-opus-5-5
+        max-tokens: 4096
     ollama:
       base-url: http://localhost:11434
       embedding:

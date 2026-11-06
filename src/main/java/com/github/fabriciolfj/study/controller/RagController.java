@@ -25,34 +25,27 @@ public class RagController {
                          TypeSafeClient typeSafeClient, TaskExecutor taskExecutor) {
         this.chatClient = chatClientBuilder.clone().build();
 
-        // Separate builder for the LLM-backed stages, so they don't inherit the main client's advisors
         var ragClientBuilder = chatClientBuilder.clone();
 
         this.modularRag = RetrievalAugmentationAdvisor.builder()
-                // 1. Pre-retrieval: rewrite the chatty question into a search-friendly query
                 .queryTransformers(RewriteQueryTransformer.builder()
                         .chatClientBuilder(ragClientBuilder)
                         .build())
-                // 2. Pre-retrieval: expand it into several diverse queries (original included)
                 .queryExpander(MultiQueryExpander.builder()
                         .chatClientBuilder(ragClientBuilder)
                         .numberOfQueries(3)
                         .build())
-                // 3. Retrieval: similarity search per query; the default joiner dedups the union
                 .documentRetriever(VectorStoreDocumentRetriever.builder()
                         .vectorStore(vectorStore)
                         .similarityThreshold(0.5)
                         .topK(4)
                         .build())
-                // 4. Post-retrieval: Jev drops bad passages, then reranks and keeps the top 3
                 .documentPostProcessors(
                         JevDocumentFilter.builder(typeSafeClient).build(),
                         JevDocumentReranker.builder(typeSafeClient).topK(3).build())
-                // 5. Generation: stuff the surviving context into the prompt
                 .queryAugmenter(ContextualQueryAugmenter.builder()
                         .allowEmptyContext(true)
                         .build())
-                // retrieval per query runs on Spring Boot's executor instead of ad-hoc non-daemon threads
                 .taskExecutor(taskExecutor)
                 .build();
     }
