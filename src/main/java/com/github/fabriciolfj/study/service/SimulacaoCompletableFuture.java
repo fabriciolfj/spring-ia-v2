@@ -20,9 +20,8 @@ public class SimulacaoCompletableFuture {
 
     static void main() throws InterruptedException {
         var pagamento = new Pagamento(BigDecimal.valueOf(1000), false);
-        var completable = new CompletableFuture<Boolean>();
-
-        var evento = new EventoPagamento(pagamento, completable);
+        // o future é criado pelo worker em processarPagamento (como no waitForAnswers)
+        var evento = new EventoPagamento(pagamento, null);
         var simulacao = new SimulacaoCompletableFuture(evento);
         simulacao.process();
 
@@ -51,18 +50,19 @@ public class SimulacaoCompletableFuture {
     }
 
     private void processarPagamento(boolean b) {
-        CompletableFuture completableFuture = new CompletableFuture<Boolean>();
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
         eventoPagamento.getPagamento().setAprovado(b);
-        EVENTO_PAGAMENTO.add(this.eventoPagamento);
-        eventoPagamento.setCompletableFuture(completableFuture);
+        eventoPagamento.setCompletableFuture(future);   // 1. deixa o future no lugar
+        EVENTO_PAGAMENTO.add(this.eventoPagamento);     // 2. só depois avisa a main
 
         IO.println("aguardando aprovacao");
 
         try {
-            eventoPagamento.getCompletableFuture().get(4, TimeUnit.SECONDS);
-
+            future.get(4, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw new RuntimeException(e);
+        } finally {
+            eventoPagamento.setCompletableFuture(null);
         }
     }
 }
