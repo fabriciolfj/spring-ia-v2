@@ -46,14 +46,15 @@ public class SimulacaoCompletableFuture {
     };
 
     void aprovacao() throws InterruptedException {
-        eventoPagamento.getPagamento().setAprovado(eventoPagamento.getPagamento().getValor().compareTo(BigDecimal.valueOf(100)) >= 0);
-        processarPagamento();
+
+        processarPagamento(eventoPagamento.getPagamento().getValor().compareTo(BigDecimal.valueOf(100)) >= 0);
     }
 
-    private void processarPagamento() {
+    private void processarPagamento(boolean b) {
         CompletableFuture completableFuture = new CompletableFuture<Boolean>();
-        eventoPagamento.setCompletableFuture(completableFuture);
+        eventoPagamento.getPagamento().setAprovado(b);
         EVENTO_PAGAMENTO.add(this.eventoPagamento);
+        eventoPagamento.setCompletableFuture(completableFuture);
 
         IO.println("aguardando aprovacao");
 
