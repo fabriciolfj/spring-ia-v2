@@ -22,6 +22,15 @@ ext {
 }
 
 dependencies {
+	implementation(platform("org.springframework.ai:spring-ai-bom:2.1.0"))
+	implementation(platform("org.springaicommunity:spring-ai-agent-utils-bom:0.14.0"))
+
+	implementation("org.springframework.ai:spring-ai-starter-model-anthropic")
+	implementation("org.springaicommunity:spring-ai-agent-utils")
+
+	// Session API
+	implementation("org.springframework.ai:spring-ai-session-advisor")
+
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
 	implementation 'org.springframework.ai:spring-ai-starter-model-anthropic'
 	implementation 'org.springframework.boot:spring-boot-validation'

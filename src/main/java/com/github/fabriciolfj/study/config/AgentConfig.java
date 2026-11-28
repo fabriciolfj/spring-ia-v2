@@ -1,5 +1,6 @@
 package com.github.fabriciolfj.study.config;
 
+import com.github.fabriciolfj.study.model.TodoUpdateEvent;
 import org.springaicommunity.agent.advisors.AutoMemoryToolsAdvisor;
 import org.springaicommunity.agent.common.task.subagent.SubagentType;
 import org.springaicommunity.agent.tools.*;
@@ -10,9 +11,15 @@ import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.ToolCallingAdvisor;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.session.DefaultSessionService;
+import org.springframework.ai.session.InMemorySessionRepository;
+import org.springframework.ai.session.SessionService;
+import org.springframework.ai.session.advisor.SessionAdvisors;
 import org.springframework.ai.tool.ToolCallback;
 import org.springaicommunity.agent.tools.task.claude.ClaudeSubagentType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -87,6 +94,21 @@ public class AgentConfig {
                 .build();
     }
 
+    @Bean("toolWrite")
+    ChatClient chatClientToolWrite(ChatClient.Builder builder,
+                                   SessionService sessionService,
+                                   ApplicationEventPublisher publisher) {
+
+        var todoTool = TodoWriteTool.builder()
+                .todoEventHandler(event -> publisher.publishEvent(new TodoUpdateEvent(event.todos())))
+                .build();
+
+        return builder
+                .defaultTools(todoTool)
+                .defaultAdvisors(SessionAdvisors.builder(sessionService).build())
+                .build();
+    }
+
     @Bean
     @Primary
     ChatClient chatClient(ChatModel chatModel) {
@@ -116,6 +138,13 @@ public class AgentConfig {
                                 .allowedDirectory(skillRootDirectory)
                                 .build(),
                         ShellTools.builder().build())
+                .build();
+    }
+
+    @Bean
+    SessionService sessionService() {
+        return DefaultSessionService.builder()
+                .sessionRepository(InMemorySessionRepository.builder().build())
                 .build();
     }
 }
